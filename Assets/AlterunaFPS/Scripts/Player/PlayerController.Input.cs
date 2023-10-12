@@ -40,10 +40,25 @@ namespace AlterunaFPS
 		
 		private void Inputs()
 		{
+			if (!Avatar.IsOwner)
+				return;
+
 			// Toggle menu
 			if (Input.GetKeyDown(KeyCode.Escape))
 			{
+				ScoreBoard.Instance.HideScoreBoard();
 				MenuInstance.Instance.SetActive(!MenuInstance.Instance.activeSelf);
+			}
+
+			// Show score board
+			if (Input.GetKeyDown(KeyCode.Tab) && !MenuInstance.Instance.activeSelf)
+            {
+				ScoreBoard.Instance.ShowScoreBoard();
+            }
+			// Hide score board
+			if (Input.GetKeyUp(KeyCode.Tab))
+			{
+				ScoreBoard.Instance.HideScoreBoard();
 			}
 		}
 		

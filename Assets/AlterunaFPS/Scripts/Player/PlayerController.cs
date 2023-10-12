@@ -18,6 +18,7 @@ namespace AlterunaFPS
 			InitializeGun();
 			InitialiseAnimations();
 			InitializeInput();
+			InitializeStats();
 		}
 		
 		private new void OnEnable()
