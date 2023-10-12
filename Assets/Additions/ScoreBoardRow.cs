@@ -37,7 +37,7 @@ public class ScoreBoardRow : MonoBehaviour
 
     public void UpdateStats(PlayerStats playerStats)
     {
-        Name.text = playerStats.Score.ToString();
+        Name.text = playerStats.Name.ToString();
         Score.text = playerStats.Score.ToString();
         Kills.text = playerStats.Kills.ToString();
         Deaths.text = playerStats.Deaths.ToString();

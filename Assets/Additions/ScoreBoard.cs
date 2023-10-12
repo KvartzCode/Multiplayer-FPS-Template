@@ -33,6 +33,7 @@ public class ScoreBoard : MonoBehaviour
             _instance = this;
 
         canvasGroup = GetComponent<CanvasGroup>();
+        canvasGroup.alpha = 0;
     }
 
 

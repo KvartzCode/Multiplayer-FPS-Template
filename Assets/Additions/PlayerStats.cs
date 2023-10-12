@@ -6,6 +6,7 @@ using UnityEngine;
 public class PlayerStats
 {
     public ushort ID { get; private set; }
+    public string Name { get; private set; }
     public int Score { get; set; }
     public int Kills { get; set; }
     public int Deaths { get; set; }
@@ -19,6 +20,7 @@ public class PlayerStats
         _user = user;
 
         ID = user.Index;
+        Name = user.Name;
         Score = score;
         Kills = kills;
         Deaths = deaths;

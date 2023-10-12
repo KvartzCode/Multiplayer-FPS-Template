@@ -18,6 +18,7 @@ namespace AlterunaFPS
 		public float PenetrationResistance = 0.5f;
 		public float DamageMultiplier = 1f;
 		public float HealthPoints = 0f;
+		public int ScorePoints = 20;
 		
 		public UnityEvent OnDeath;
 		
@@ -33,10 +34,11 @@ namespace AlterunaFPS
 			}
 		}
 
-		public void TakeDamage(float damage) => TakeDamage(damage, Time.frameCount);
+		public bool TakeDamage(float damage, out int score) => TakeDamage(damage, Time.frameCount, out score);
 
-		private void TakeDamage(float damage, int damageIndex)
+		private bool TakeDamage(float damage, int damageIndex, out int score)
 		{
+			score = ScorePoints; // return no damage if
 			damage *= DamageMultiplier;
 
 			// Check if damage is already applied.
@@ -44,9 +46,10 @@ namespace AlterunaFPS
 			{
 				// Undo last damage before applying new damage.
 				if (damage > _lastDamage)
-					TakeDamage(-_lastDamage, damageIndex);
+					TakeDamage(-_lastDamage, damageIndex, out score);
 				// If new damage is less than last damage, ignore.
-				else return;
+				else
+					return false;
 			}
 			_lastDamage = damage;
 			_lastDamageIndex = damageIndex;
@@ -54,17 +57,21 @@ namespace AlterunaFPS
 			// apply damage
 			if (Parent != null)
 			{
-				Parent.TakeDamage(damage);
+				return Parent.TakeDamage(damage, out score);
 			}
 			else if (Alive)
 			{
 				HealthPoints -= damage;
+				//score = ScorePoints;
 				if (HealthPoints <= 0f)
 				{
 					HealthPoints = 0f;
 					OnDeath.Invoke();
+					return true;
 				}
 			}
+
+			return false;
 		}
 	}
 }

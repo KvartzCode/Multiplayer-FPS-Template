@@ -139,6 +139,9 @@ namespace AlterunaFPS
 			// Sort the hits by distance
 			hits = hits.OrderBy(h => h.distance).ToArray();
 			int l = hits.Length;
+
+			int targetsKilled = 0;
+			int totalScoreGained = 0;
 			
 			for (int i = 0; i < l; i++)
 			{
@@ -151,7 +154,7 @@ namespace AlterunaFPS
 					{
 						DrawLine(i, Color.red);
 						// fragmentation damage
-						target.TakeDamage(Mathf.Min(2 * currentPenetration / penetration, 1f) * damage * distanceDamageDropoff);
+						DamageTarget(target, Mathf.Min(2 * currentPenetration / penetration, 1f) * damage * distanceDamageDropoff);
 						hitDistance = hits[i].distance;
 						
 						// If penetration is not enough to go through the target, stop the bullet
@@ -159,7 +162,7 @@ namespace AlterunaFPS
 					}
 
 					// penetration damage with dropoff
-					target.TakeDamage(currentPenetration / penetration * damage * distanceDamageDropoff);
+					DamageTarget(target, currentPenetration / penetration * damage * distanceDamageDropoff);
 					DrawLine(i, Color.yellow);
 
 					// decreases its penetration after the projectile have exited the target
@@ -179,6 +182,10 @@ namespace AlterunaFPS
 				}
 			}
 
+			_stats.Kills += targetsKilled;
+			_stats.Score += totalScoreGained;
+			ScoreBoard.Instance.UpdatePlayerStats(_stats);
+
 			EfxManager.Instance.PlayBullet(origin, direction, hitDistance / 100f);
 
 			void DrawLine(int i, Color color, float duration = 1f)
@@ -188,6 +195,18 @@ namespace AlterunaFPS
 				else
 					Debug.DrawLine(hits[i - 1].point, hits[i].point, color, duration);
 			}
+			
+			void DamageTarget(Health target, float damage)
+			{
+				bool killedTarget = target.TakeDamage(damage, out int score);
+
+				if (target.transform.root.CompareTag("Player")) // Only apply player logic if target is another player.
+                {
+					totalScoreGained += score;
+					targetsKilled += killedTarget ? 1 : 0;
+                }
+			}
 		}
+
 	}
 }
