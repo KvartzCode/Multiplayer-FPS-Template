@@ -18,7 +18,7 @@ namespace AlterunaFPS
 			InitializeGun();
 			InitialiseAnimations();
 			InitializeInput();
-			InitializeStats();
+			//InitializeStats();
 		}
 		
 		private new void OnEnable()
@@ -26,6 +26,7 @@ namespace AlterunaFPS
 			base.OnEnable();
 			
 			ResetAmmo();
+			ResetHealth();
 			Commit();
 
 			if (_isOwner && _possesed)

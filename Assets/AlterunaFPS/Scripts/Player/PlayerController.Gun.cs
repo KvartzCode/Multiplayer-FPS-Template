@@ -140,7 +140,7 @@ namespace AlterunaFPS
 			hits = hits.OrderBy(h => h.distance).ToArray();
 			int l = hits.Length;
 
-			int targetsKilled = 0;
+			int totalPlayersKilled = 0;
 			int totalScoreGained = 0;
 			
 			for (int i = 0; i < l; i++)
@@ -148,13 +148,20 @@ namespace AlterunaFPS
 				if (hits[i].collider.TryGetComponent(out Health target))
 				{
 					EfxManager.Instance.PlayImpact(hits[i].point, hits[i].normal, hits[i].transform, target.MaterialType);
-					
+
+					int targetsKilled = 0;
+					int scoreGained = 0;
+
 					float distanceDamageDropoff = 10f / (hits[i].distance + 10f);
 					if ((currentPenetration - target.PenetrationResistance) / penetration * distanceDamageDropoff <= 0)
 					{
 						DrawLine(i, Color.red);
 						// fragmentation damage
-						DamageTarget(target, Mathf.Min(2 * currentPenetration / penetration, 1f) * damage * distanceDamageDropoff);
+						DamageTarget(target, Mathf.Min(2 * currentPenetration / penetration, 1f) * damage * distanceDamageDropoff,
+							out scoreGained, out targetsKilled);
+						totalPlayersKilled += targetsKilled;
+						totalScoreGained += scoreGained;
+
 						hitDistance = hits[i].distance;
 						
 						// If penetration is not enough to go through the target, stop the bullet
@@ -162,7 +169,11 @@ namespace AlterunaFPS
 					}
 
 					// penetration damage with dropoff
-					DamageTarget(target, currentPenetration / penetration * damage * distanceDamageDropoff);
+					DamageTarget(target, currentPenetration / penetration * damage * distanceDamageDropoff,
+						out scoreGained, out targetsKilled);
+					totalPlayersKilled += targetsKilled;
+					totalScoreGained += scoreGained;
+
 					DrawLine(i, Color.yellow);
 
 					// decreases its penetration after the projectile have exited the target
@@ -182,11 +193,20 @@ namespace AlterunaFPS
 				}
 			}
 
-			_stats.Kills += targetsKilled;
-			_stats.Score += totalScoreGained;
-			ScoreBoard.Instance.UpdatePlayerStats(_stats);
+            //if (Avatar.IsOwner)
+            //         {
+            //	_stats.Kills += totalTargetsKilled;
+            //	_stats.Score += totalScoreGained;
+            //	//UpdateValues();
+            //	RefreshValues();
+            //         }
+            //AddKills(targetsKilled);
+            //AddScore(totalScoreGained);
+            //ScoreBoard.Instance.UpdatePlayerStats(_stats);
+            ScoreBoard.Instance.AddScore(Avatar.Possessor, totalScoreGained);
+            ScoreBoard.Instance.AddKills(Avatar.Possessor, totalPlayersKilled);
 
-			EfxManager.Instance.PlayBullet(origin, direction, hitDistance / 100f);
+            EfxManager.Instance.PlayBullet(origin, direction, hitDistance / 100f);
 
 			void DrawLine(int i, Color color, float duration = 1f)
 			{
@@ -196,17 +216,22 @@ namespace AlterunaFPS
 					Debug.DrawLine(hits[i - 1].point, hits[i].point, color, duration);
 			}
 			
-			void DamageTarget(Health target, float damage)
-			{
-				bool killedTarget = target.TakeDamage(damage, out int score);
-
-				if (target.transform.root.CompareTag("Player")) // Only apply player logic if target is another player.
-                {
-					totalScoreGained += score;
-					targetsKilled += killedTarget ? 1 : 0;
-                }
-			}
 		}
 
+		void DamageTarget(Health target, float damage, out int scoreGained, out int playerKilled)
+		{
+			scoreGained = 0;
+			playerKilled = 0;
+			bool killedTarget = target.TakeDamage(damage);
+
+			if (target.transform.root.CompareTag("Player")) // Only apply player logic if target is another player.
+            {
+				var other = target.transform.root.GetComponent<PlayerController>();
+				//bool killedTarget = other.IsAlive();
+
+				playerKilled = killedTarget ? 1 : 0;
+				scoreGained = killedTarget ? 100 : 20;
+            }
+		}
 	}
 }

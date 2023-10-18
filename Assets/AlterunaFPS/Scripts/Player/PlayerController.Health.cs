@@ -4,13 +4,13 @@ namespace AlterunaFPS
 {
 	public partial class PlayerController
 	{
-		
 		[Header("Health")]
 		public float MaxHealth = 20f;
 		
 		private Health _health;
 		private int _lastSpawnIndex;
 		
+
 		private void InitializeHealth()
 		{
 			_health = GetComponent<Health>();
@@ -18,8 +18,20 @@ namespace AlterunaFPS
 			{
 				_health.OnDeath.AddListener(OnDeath);
 				_health.HealthPoints = MaxHealth;
+				ResetHealth();
 			}
 		}
+
+		public bool IsAlive()
+        {
+			return _health.Alive;
+        }
+
+		private void ResetHealth()
+        {
+			if (_health != null) // Required because InitializeHealth is called after being possesed
+				_health.HealthPoints = MaxHealth;
+        }
 
 		private void OnDeath()
 		{
@@ -29,7 +41,7 @@ namespace AlterunaFPS
 				CinemachineVirtualCameraInstance.Instance.Follow(null);
 			}
 			
-			_health.HealthPoints = MaxHealth;
+			//_health.HealthPoints = MaxHealth;
 
 			if (_offline)
 			{

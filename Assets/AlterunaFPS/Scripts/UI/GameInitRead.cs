@@ -11,6 +11,8 @@ namespace AlterunaFPS
 
 		private void Start()
 		{
+			Multiplayer.RoomJoined.AddListener(OnJoin);
+
 			if (GameInitSet.Host)
 			{
 				Multiplayer.Connected.AddListener(CallInitHost);
@@ -27,5 +29,11 @@ namespace AlterunaFPS
 			arg0.Connected.RemoveListener(CallInitHost);
 			InitHostConnect.Invoke();
 		}
+
+		private void OnJoin(Multiplayer arg0, Room arg1, User arg2)
+        {
+			arg0.RoomJoined.RemoveListener(OnJoin);
+			ScoreBoard.Instance.GetOrAddRow(arg2);
+        }
 	}
 }
