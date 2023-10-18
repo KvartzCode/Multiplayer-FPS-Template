@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Alteruna;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ScoreBoard : AttributesSync
 {
@@ -23,10 +24,9 @@ public class ScoreBoard : AttributesSync
     [SerializeField, Tooltip("The parent to spawn new rows under")]
     private Transform _scoreRowParent;
 
-    //private List<PlayerStats> _playerStats = new List<PlayerStats>();
     private List<ScoreBoardRow> _rows = new List<ScoreBoardRow>();
 
-    private CanvasGroup canvasGroup; // Used to toggle visibility without disabling the GameObject
+    private CanvasGroup canvasGroup; // Used to toggle visibility without disabling the GameObject.
 
 
     private void Awake()
@@ -38,33 +38,34 @@ public class ScoreBoard : AttributesSync
 
         canvasGroup = GetComponent<CanvasGroup>();
         canvasGroup.alpha = 0;
-
-        //InvokeRepeating(nameof(RefreshPing), pingRefreshRate, pingRefreshRate);
     }
 
     private void Start()
     {
-        //if (Multiplayer.Me.IsHost)
-        //Multiplayer.ForceSynced.AddListener(OtherUserJoined);
         Multiplayer.OtherUserJoined.AddListener(OtherUserJoined);
         InvokeRepeating(nameof(UpdatePing), pingRefreshRate, pingRefreshRate);
     }
 
-
+    /// <summary>
+    /// Returns if you're not the host.
+    /// </summary>
     private void OtherUserJoined(Multiplayer multiplayer, User user)
     {
         if (!Multiplayer.GetUser().IsHost)
             return;
 
         var row = GetOrAddRow(user);
+        //This could be better but basically don't call remote method for host and the new user since they initialize the new user's row themselfes.
         List<ushort> users = Multiplayer.GetUsers().Where(u => u.Index != user.Index && u.Index != Multiplayer.GetUser().Index).Select(u => u.Index).ToList();
         InvokeRemoteMethod(nameof(AddRowForClients), users, row.Stats);
 
-        //RefreshValues(user);
         var players = _rows.Select(r => r.Stats).ToList();
         InvokeRemoteMethod(nameof(GetPlayerList), user.Index, players);
     }
 
+    /// <summary>
+    /// Replaces any existing list of rows with new ones sent from the host.
+    /// </summary>
     [SynchronizableMethod]
     public void GetPlayerList(List<PlayerStats> playerList)
     {
@@ -83,6 +84,10 @@ public class ScoreBoard : AttributesSync
         }
     }
 
+    /// <summary>
+    /// Called for all clients except the client who just joined.
+    /// </summary>
+    /// <param name="player"></param>
     [SynchronizableMethod]
     private void AddRowForClients(PlayerStats player)
     {
@@ -150,37 +155,23 @@ public class ScoreBoard : AttributesSync
         }
     }
 
+    /// <summary>
+    /// Updates all values of row matching the PlayerStats parameter.
+    /// </summary>
     [SynchronizableMethod]
     private void RefreshValuesRemote(PlayerStats player)
     {
         _rows.FirstOrDefault(r => r.Stats == player).UpdateStats(player);
+
+        //Would be nice if this worked.
+        _rows.OrderBy(r => r.Stats.Score);
+        for (int i = 0; i < _rows.Count; i++)
+        {
+            _rows[i].transform.SetSiblingIndex(i);
+        }
     }
 
     #endregion
-
-    //[SynchronizableMethod]
-    //private void RefreshValuesRemote()
-    //{
-    //    foreach (ScoreBoardRow row in _rows)
-    //    {
-    //        row.RefreshStats();
-    //    }
-    //}
-
-    //private void RefreshPing()
-    //{
-    //    BroadcastRemoteMethod(nameof(RefreshPingRemote));
-    //}
-
-    //[SynchronizableMethod]
-    //private void RefreshPingRemote()
-    //{
-    //    foreach (ScoreBoardRow row in _rows)
-    //    {
-    //        row.RefreshPing();
-    //    }
-    //}
-
 
     /// <summary>
     /// Doesn't fully work since the only latency available to us is the host's latency.
@@ -193,11 +184,6 @@ public class ScoreBoard : AttributesSync
             var row = _rows.FirstOrDefault(r => r.Stats.ID == user.Index);
             row.UpdatePing(user.Latency);
         }
-        //foreach (ScoreBoardRow row in _rows)
-        //{
-        //    User user = Multiplayer.GetUser(row.Stats.ID);
-        //    row.UpdatePing(user.Latency);
-        //}
     }
 
     public void ShowScoreBoard()

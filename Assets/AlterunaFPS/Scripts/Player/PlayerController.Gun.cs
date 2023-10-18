@@ -193,16 +193,6 @@ namespace AlterunaFPS
 				}
 			}
 
-            //if (Avatar.IsOwner)
-            //         {
-            //	_stats.Kills += totalTargetsKilled;
-            //	_stats.Score += totalScoreGained;
-            //	//UpdateValues();
-            //	RefreshValues();
-            //         }
-            //AddKills(targetsKilled);
-            //AddScore(totalScoreGained);
-            //ScoreBoard.Instance.UpdatePlayerStats(_stats);
             ScoreBoard.Instance.AddScore(Avatar.Possessor, totalScoreGained);
             ScoreBoard.Instance.AddKills(Avatar.Possessor, totalPlayersKilled);
 
@@ -226,9 +216,6 @@ namespace AlterunaFPS
 
 			if (target.transform.root.CompareTag("Player")) // Only apply player logic if target is another player.
             {
-				var other = target.transform.root.GetComponent<PlayerController>();
-				//bool killedTarget = other.IsAlive();
-
 				playerKilled = killedTarget ? 1 : 0;
 				scoreGained = killedTarget ? 100 : 20;
             }
