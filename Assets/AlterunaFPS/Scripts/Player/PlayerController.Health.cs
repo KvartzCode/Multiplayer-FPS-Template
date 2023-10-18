@@ -37,6 +37,7 @@ namespace AlterunaFPS
 		{
 			if (_possesed)
 			{
+				ScoreBoard.Instance.AddDeaths(Avatar.Possessor, 1);
 				CinemachineVirtualCameraInstance.Instance.gameObject.SetActive(false);
 				CinemachineVirtualCameraInstance.Instance.Follow(null);
 			}

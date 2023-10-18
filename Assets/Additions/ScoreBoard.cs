@@ -107,6 +107,9 @@ public class ScoreBoard : AttributesSync
         return row;
     }
 
+
+    #region Update Stats
+
     public void AddScore(User user, int amount)
     {
         if (Multiplayer.GetUser().IsHost)
@@ -125,6 +128,19 @@ public class ScoreBoard : AttributesSync
         }
     }
 
+    public void AddDeaths(User user, int amount)
+    {
+        if (Multiplayer.GetUser().IsHost)
+        {
+            GetOrAddRow(user).Stats.Deaths += amount;
+            RefreshValues(user);
+        }
+    }
+
+    /// <summary>
+    /// Send updated values of user to all clients. However, if you want to be more effective,
+    /// you should only send the values that clients need. Instead of the whole object of data.
+    /// </summary>
     private void RefreshValues(User user)
     {
         if (Multiplayer.GetUser().IsHost)
@@ -139,6 +155,8 @@ public class ScoreBoard : AttributesSync
     {
         _rows.FirstOrDefault(r => r.Stats == player).UpdateStats(player);
     }
+
+    #endregion
 
     //[SynchronizableMethod]
     //private void RefreshValuesRemote()
@@ -163,6 +181,10 @@ public class ScoreBoard : AttributesSync
     //    }
     //}
 
+
+    /// <summary>
+    /// Doesn't fully work since the only latency available to us is the host's latency.
+    /// </summary>
     private void UpdatePing()
     {
         List<User> users = Multiplayer.GetUsers();
